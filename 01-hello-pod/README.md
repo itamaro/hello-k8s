@@ -50,3 +50,41 @@ kubectl get pods -w
 ```
 
 Note the pod disappears completely (even though we specified "restart" to be "Always" - why is that?).
+
+We can also add probes to container in the pod:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kuard
+spec:
+  containers:
+  - name: kuard
+    image: gcr.io/kuar-demo/kuard-amd64:1
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 8080
+      name: http
+    livenessProbe:
+      httpGet:
+        path: /healthy
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: http
+  restartPolicy: Always
+```
+
+```sh
+kubectl create -f my-pod-with-probes.yaml
+kubectl get pods -o wide -w
+kubectl describe pod kuard
+```
+
+Cleanup:
+
+```sh
+kubectl delete pod kuard
+```
