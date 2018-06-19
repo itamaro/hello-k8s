@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    woot: omg
+  name: kuard
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: http
