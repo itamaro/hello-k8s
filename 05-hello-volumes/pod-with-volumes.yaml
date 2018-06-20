@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+data:
+  # echo -n "don't tell anyone..." | base64 -w 0
+  username: ZG9uJ3QgdGVsbCBhbnlvbmUuLi4=
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: myconfigmap
+data:
+  config: "Hello config world!"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kuard
+  labels:
+    foo: bar
+    key: val
+spec:
+  restartPolicy: Always
+  containers:
+  - name: kuard
+    image: gcr.io/kuar-demo/kuard-amd64:1
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 8080
+      name: http
+    livenessProbe:
+      httpGet:
+        path: /healthy
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: http
+    volumeMounts:
+    - name: cloud-pv
+      mountPath: "/my-cloud-disk"
+    - name: all-in-one
+      mountPath: "/projected-volume"
+      readOnly: true
+  volumes:
+  - name: cloud-pv
+    persistentVolumeClaim:
+      claimName: mypvc
+  - name: all-in-one
+    projected:
+      sources:
+      - secret:
+          name: mysecret
+          items:
+            - key: username
+              path: my-group/my-username
+      - downwardAPI:
+          items:
+            - path: "labels"
+              fieldRef:
+                fieldPath: metadata.labels
+            - path: "cpu_limit"
+              resourceFieldRef:
+                containerName: kuard
+                resource: limits.cpu
+      - configMap:
+          name: myconfigmap
+          items:
+            - key: config
+              path: my-group/my-config
