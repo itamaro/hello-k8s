@@ -14,6 +14,8 @@ metadata:
 data:
   # echo -n "don't tell anyone..." | base64 -w 0
   username: ZG9uJ3QgdGVsbCBhbnlvbmUuLi4=
+  # echo -n "pa$$w0rd" | base64 -w 0
+  password: cGExODE3N3cwcmQ=
 ```
 
 Create a ConfigMap:
@@ -25,6 +27,7 @@ metadata:
   name: myconfigmap
 data:
   config: "Hello config world!"
+  name: "Bond"
 ```
 
 Create a PVC:
@@ -70,6 +73,17 @@ spec:
       httpGet:
         path: /ready
         port: http
+    env:
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: password
+    - name: NAME
+      valueFrom:
+        configMapKeyRef:
+          name: myconfigmap
+          key: name
     volumeMounts:
     - name: cloud-pv
       mountPath: "/my-cloud-disk"
