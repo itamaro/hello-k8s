@@ -19,3 +19,9 @@ gcloud container clusters create $CLUSTER --num-nodes=3 --machine-type n1-standa
 kubectl get nodes
 kubectl get pods --all-namespaces
 ```
+
+## Cleanup GKE Cluster
+
+```sh
+gcloud container clusters delete $CLUSTER
+```
